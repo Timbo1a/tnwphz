@@ -1,0 +1,20 @@
+Schauen, wie man bei Wordpress eine Verbindung zur Datenbank herstellt. 
+Hooks für aktivieren/deaktivieren/installieren am Plugin (Siehe Plugin-Manager im Backend).
+	 Beim Aktivieren oder installieren, müssen die entsprechenden Tabellen in der DB angelegt werden.
+Tabellen manuell (testweise) anlegen und dann "listZutaten" fertig stellen.
+
+
+1. Im Backend ordentlich bauen, dass man Zutat, Warengruppen, Einheiten editieren, hinzufügen und löschen kann. (So wie bereits vorbereitet) Eine Warengruppe darf nicht gelöscht werden, wenn es noch Zutaten/Mapping gibt, die dieser zugeordnet sind.
+2. Unter Rezepte existiert der "Zutaten-Helfer". Dieser wird ersetzt:
+
+	Der neue Zutaten-Helfer greift auf die neue Datenstruktur zu. Beim Speichern wird das neue Mapping in die alte String-Form konvertiert (Zwischenlösung):
+		Das Mapping aus ZM_Rezept_Map wird beim Speichern des Rezepts in das alte Format konvertiert und der Daten-String in wp_postmeta geschrieben.
+			-Daten-String:
+			...
+			8 Stk Kaninchenkeulen
+			2 Stk Möhren
+			2 Stk Zwiebel
+			...
+	Folgendes wird im ganzen Szenario noch nicht betrachtet:
+		-In der Zutaten-Liste gibt es noch Tags, wie z.B.: #Für die Marinade#. Diese müssen noch berücksichtigt werden.
+		-Nährwerte. Diese müssen noch berücksichtigt und ggf. optional sein.
