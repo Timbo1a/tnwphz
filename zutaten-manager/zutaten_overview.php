@@ -1,5 +1,5 @@
 <script type="text/javascript">
-            var table;
+        var table;
         var endpoint = ajaxurl;
         //Wird per Ajax erstellt (Vor document.ready)
         var warengruppe;
