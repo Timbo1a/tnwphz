@@ -24,15 +24,12 @@ class Zutatenmanager{
         return $zt;
     }
     
-    function deleteZutat($id){
-        
-    }
-    
-    
-    function deleteIngredient($id){//funktioniert nicht
+   
+    //Zutat mit PK löschen. TODO: Beziehungen prüfen.
+    function deleteIngredient($id){
         global $wpdb;
-        $data = "Select from $wpdb WHERE id = $id";
-        $sql = "DELETE FROM $wpdb WHERE name = $data";
+        $data = "Select from ".$wpdb->prefix."ZM_Zutat WHERE id = $id";
+        $sql = "DELETE FROM ".$wpdb->prefix."ZM_Zutat WHERE name = $data";
     }
     
     static function addZutat($name, $fk_warengruppe){
@@ -78,6 +75,19 @@ class Zutatenmanager{
             
         }
         return $obString;
+    }
+    
+    //Rezept als Objekt
+    public static function getRezept($postID = -1){
+        global $wpdb;
+        if ($postID == -1) return "";
+        
+        $arrRezept = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."ZM_Einheit AS zme, ".$wpdb->prefix."ZM_Rezept_Map AS zmrm, ".$wpdb->prefix."ZM_Zutat AS zmz WHERE
+									zme.PK_Einheit = zmrm.FK_Einheit AND
+									zmz.PK_Zutat = zmrm.FK_Zutat AND
+									zmrm.FK_WP_Posts_ID = ".$postID."
+									ORDER BY Gruppe asc");
+        return $arrRezept;
     }
     
 }
