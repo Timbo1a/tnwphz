@@ -16,7 +16,7 @@
 
         $(document).ready(function () {
             //var data = table.$('input, select').serialize(); //Form submit
-            table = $('#example').DataTable({
+            table = $('#ztOverview').DataTable({
                 "ajax": {
                     "url": endpoint,
                     "type": "POST",
@@ -241,7 +241,7 @@
 
 <form name="zutaten">
     <div class="table-responsive" style="width:80%">
-        <table id="example" class="display compact" cellspacing="0">
+        <table id="ztOverview" class="display compact" cellspacing="0">
             <thead>
                 <tr>
                     <th>ID</th>
