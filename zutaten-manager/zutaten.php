@@ -49,6 +49,9 @@ function zmAjaxHandler() {
         case "addIngredient":
             echo ajaxAddIngredient();
             break;
+        case "deleteIngredient":
+            echo ajaxDeleteIngredient();
+            break;
     }
     
     wp_die(); // this is required to terminate immediately and return a proper response
@@ -71,6 +74,9 @@ function ajaxLoadAllIngredients(){
 }
 function ajaxAddIngredient(){
     return Zutatenmanager::addZutat($_POST['bezeichnung'],$_POST['FK_Warengruppe']);
+}
+function ajaxDeleteIngredient(){
+    return Zutatenmanager::deleteIngredient($_POST['id']);
 }
 ///   //AJAX
 

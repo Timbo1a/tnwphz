@@ -1,5 +1,8 @@
 <?php
-
+/*
+ * TODO:
+ * Prepared statements gegen SQL-Injections
+ */
 class Zutatenmanager{
     //Erstmal nur statische Methodenb
     function __construct(){
@@ -26,10 +29,14 @@ class Zutatenmanager{
     
    
     //Zutat mit PK löschen. TODO: Beziehungen prüfen.
-    function deleteIngredient($id){
+    static function deleteIngredient($id){
         global $wpdb;
-        $data = "Select from ".$wpdb->prefix."ZM_Zutat WHERE id = $id";
-        $sql = "DELETE FROM ".$wpdb->prefix."ZM_Zutat WHERE name = $data";
+        $wpdb->delete( $wpdb->prefix."ZM_Zutat", array( 'PK_Zutat' => $id ));
+        //False on error
+        if($result == false){
+            return false;
+        }
+        return true;
     }
     
     static function addZutat($name, $fk_warengruppe){
@@ -47,10 +54,10 @@ class Zutatenmanager{
         if ($postID == -1) return "";
         
         $arrRezept = $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."ZM_Einheit AS zme, ".$wpdb->prefix."ZM_Rezept_Map AS zmrm, ".$wpdb->prefix."ZM_Zutat AS zmz WHERE
-									zme.PK_Einheit = zmrm.FK_Einheit AND
-									zmz.PK_Zutat = zmrm.FK_Zutat AND
-									zmrm.FK_WP_Posts_ID = ".$postID."
-									ORDER BY Gruppe asc");
+    									zme.PK_Einheit = zmrm.FK_Einheit AND
+    									zmz.PK_Zutat = zmrm.FK_Zutat AND
+    									zmrm.FK_WP_Posts_ID = ".$postID."
+    									ORDER BY Gruppe asc");
         
         $obString = "";
         $gruppeNMinus1 = "";
