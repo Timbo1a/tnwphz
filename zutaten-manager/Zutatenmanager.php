@@ -40,11 +40,7 @@ class Zutatenmanager{
         $wpdb->insert($table,$data,$format);
         return $my_id = $wpdb->insert_id;
     }
-    
-    function printZutatenString(){
-        echo Zutatenmanager::buildRezeptString(754, true);
-    }
-    
+
     //Baut den RezepteString
     public static function buildRezeptString($postID =-1, $htmlMode=false){
         global $wpdb;
