@@ -60,7 +60,7 @@ add_action( 'wp_ajax_zmAJAX', 'zmAjaxHandler' );
 
 //Die Funktion, die inital im Backend aufgerufen wird, wenn man den Punkt "Zutaten-Manager" auswählt
 function zutatenManagerInit(){
-    include 'zutaten_Overview.php';
+    include 'zutaten_overview.php';
 }
 
 
