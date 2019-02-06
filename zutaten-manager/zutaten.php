@@ -15,6 +15,10 @@ function pw_load_scripts($hook) {
     if( $hook != 'toplevel_page_zutaten' ) return;
     
     wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
+    //TODO: Eigentlich werden die Skripte bereits geladen...
+    //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
+    //wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
+    wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
 }
 add_action('admin_enqueue_scripts', 'pw_load_scripts');
 
@@ -60,7 +64,20 @@ add_action( 'wp_ajax_zmAJAX', 'zmAjaxHandler' );
 
 //Die Funktion, die inital im Backend aufgerufen wird, wenn man den Punkt "Zutaten-Manager" auswählt
 function zutatenManagerInit(){
-    include 'zutaten_overview.php';
+?>
+    <div id="tabs">
+    	<ul>
+    		<li><a href="#tabs-1">Zutaten</a>
+    		<li><a href="#tabs-2">Warengruppen</a>
+    		<li><a href="#tabs-3">Einheiten</a>
+    	</ul>
+    
+    	<div id="tabs-1"><?php include 'zutaten_overview.php'; ?></div>
+    	<div id="tabs-2"><?php include 'warengruppen_overview.php'; ?></div>
+    	<div id="tabs-3"><?php echo "Einheiten"; ?></div>
+    </div>
+<?php 
+    
 }
 
 

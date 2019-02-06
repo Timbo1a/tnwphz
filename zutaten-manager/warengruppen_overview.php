@@ -1,9 +1,9 @@
 <script type="text/javascript">
-var table;
+var tableWG;
 var endpoint = ajaxurl;
 $(document).ready(function () {
-
-	 table = $('#wgOverview').DataTable({
+	
+	 tableWG = $('#wgOverview').DataTable({
 	      "ajax": {
               "url": endpoint,
               "type": "POST",
@@ -17,6 +17,7 @@ $(document).ready(function () {
               { "data": "PK_Warengruppe" },
               { "data": "Bezeichnung" }
           ]
+          
 
 	 });
 	
@@ -31,12 +32,14 @@ $(document).ready(function () {
                 <tr>
                     <th>ID</th>
                     <th>Bezeichnung</th>
+                    <th></th>
                 </tr>
             </thead>
             <tfoot>
                 <tr>
                     <th>ID</th>
                     <th>Bezeichnung</th>
+                    <th></th>
                 </tr>
             </tfoot>
         </table>
