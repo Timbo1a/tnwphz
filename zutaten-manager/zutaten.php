@@ -98,4 +98,35 @@ function ajaxDeleteIngredient(){
 ///   //AJAX
 
 
+
+function createZutatenManagerMetabox() {add_meta_box('idZutatenManagerMetabox', 'Zutaten Manager 2.0', 'contentZutatenManagerMetaBox', 'recipe', 'normal', 'default');}
+add_action( 'add_meta_boxes', 'createZutatenManagerMetabox' );
+
+function contentZutatenManagerMetaBox(){
+    global $post;
+    //$id = $post->ID;
+    //print_r($post);
+    ?>
+<script type="text/javascript">
+function zmAutoFill(){
+	$.post( ajaxurl, { action: "zmAJAX", function: "zmAllIngredients" })
+	.done(function( data ) {
+		$('#ZMJsonDataList').empty();
+		var response = $.parseJSON(data);
+		$(response.data).each(function(){
+			$('#ZMJsonDataList').append("<option value=\""+this.Bezeichnung+"\">");
+		});
+	});		
+}
+$(document).ready(function () {
+	zmAutoFill();
+});
+
+</script>
+
+<datalist id="ZMJsonDataList"><option value="Value1"></datalist>
+<input type="text" id="ZMDropdown" list="ZMJsonDataList">
+    
+    <?php 
+}
 ?>
