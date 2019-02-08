@@ -14,7 +14,7 @@ class Zutatenmanager{
         return $wg;
     }
     
-    //Wird keine Warengruppe übergeben, werden alle Zutaten mit ihren entsprechenden Warengruppen zurückgegeben.
+    //Wird keine Warengruppe Ã¼bergeben, werden alle Zutaten mit ihren entsprechenden Warengruppen zurÃ¼ckgegeben.
     function loadZutaten($pkWarengruppe = null){
         global $wpdb;
         $pkCond = "";
@@ -27,8 +27,8 @@ class Zutatenmanager{
         return $zt;
     }
     
-   
-    //Zutat mit PK löschen. TODO: Beziehungen prüfen.
+    
+    //Zutat mit PK lÃ¶schen. TODO: Beziehungen prÃ¼fen.
     static function deleteIngredient($id){
         global $wpdb;
         $wpdb->delete( $wpdb->prefix."ZM_Zutat", array( 'PK_Zutat' => $id ));
@@ -47,7 +47,7 @@ class Zutatenmanager{
         $wpdb->insert($table,$data,$format);
         return $my_id = $wpdb->insert_id;
     }
-
+    
     //Baut den RezepteString
     public static function buildRezeptString($postID =-1, $htmlMode=false){
         global $wpdb;
@@ -64,9 +64,9 @@ class Zutatenmanager{
         foreach($arrRezept as $zutat){
             $obLine = "";
             
-            //Hier wird von folgendem Verhalten ausgegangen: Die Liste der Zutaten kommt nach Gruppe sortiert asc/desc. Sobald der erste String auftaucht, wird dieser angezeigt. Ändert sich der String, wird auch der neue wieder einmal angezeigt in der Form #String#.
+            //Hier wird von folgendem Verhalten ausgegangen: Die Liste der Zutaten kommt nach Gruppe sortiert asc/desc. Sobald der erste String auftaucht, wird dieser angezeigt. Ã„ndert sich der String, wird auch der neue wieder einmal angezeigt in der Form #String#.
             if($gruppeNMinus1 !== $zutat->Gruppe && !$zutat->Gruppe == ""){ //TODO: Null-Verhalten != "" und Sortierung checken
-                $obLine .= "#" . $zutat->Gruppe . "#" . ($htmlMode ? "<br/>" :"\r\n"); //Ändert sich die Gruppe, schreibe diese zusätzlich als eigene Zeile einmalig davor
+                $obLine .= "#" . $zutat->Gruppe . "#" . ($htmlMode ? "<br/>" :"\r\n"); //Ã„ndert sich die Gruppe, schreibe diese zusÃ¤tzlich als eigene Zeile einmalig davor
             }
             
             $obLine .= round($zutat->Menge, 2) . " " . $zutat->Label . " " . $zutat->Bezeichnung . ($zutat->Zusatz == "" ? " " : " (". $zutat->Zusatz .")") . ($htmlMode ? "<br/>" :"\r\n");
@@ -93,5 +93,9 @@ class Zutatenmanager{
         return $arrRezept;
     }
     
+    public static function getEinheiten(){
+        global $wpdb;
+        return $wpdb->get_results("SELECT * FROM ".$wpdb->prefix."ZM_Einheit ORDER BY PK_Einheit");
+    }
+    
 }
-
