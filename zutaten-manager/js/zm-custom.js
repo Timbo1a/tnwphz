@@ -14,6 +14,7 @@ function ingredientTableAddRow(){
       rowBuffer += "<td><b>"+text+"</b></td>";
       //rowBuffer += "<td><select class=\"subrecipeGroupDD\"><option></option></select></td>";    
       rowBuffer += "<td><input type=\"text\" value=\"\"/></td>";    
+      rowBuffer += "<td><input type=\"text\" value=\"\"/></td>";    
       rowBuffer += "<td><a href=\"javascript:void(0);\" onClick=\"$(this).parent().parent().remove();\" id=\"zmDeleteRowLink\">Löschen</a></td>";
   rowBuffer += "</tr>";
 
