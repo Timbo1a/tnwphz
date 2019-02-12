@@ -69,7 +69,7 @@ class Zutatenmanager{
                 $obLine .= "#" . $zutat->Gruppe . "#" . ($htmlMode ? "<br/>" :"\r\n"); //Ã„ndert sich die Gruppe, schreibe diese zusÃ¤tzlich als eigene Zeile einmalig davor
             }
             
-            $obLine .= round($zutat->Menge, 2) . " " . $zutat->Label . " " . $zutat->Bezeichnung . ($zutat->Zusatz == "" ? " " : " (". $zutat->Zusatz .")") . ($htmlMode ? "<br/>" :"\r\n");
+            $obLine .= round($zutat->Menge, 2) . " " . $zutat->Label . " " . $zutat->Bezeichnung . ($zutat->Zusatz == "" ? " " : " ". $zutat->Zusatz ."") . ($htmlMode ? "<br/>" :"\r\n");
             // print_r($zutat);
             $obString .= $obLine;
             

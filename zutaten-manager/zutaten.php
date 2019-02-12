@@ -51,18 +51,22 @@ add_action('admin_menu', 'zutaten_management');
 
 
 //action on save
-/*add_action( 'save_post', 'zmSavePostRecipe', 10, 3 );
- function zmSavePostRecipe( $post_ID, $post, $update ) {
+add_action( 'save_post', 'zmSavePostRecipe', 10, 3 );
+function zmSavePostRecipe( $post_ID, $post, $update ) {
  global $post_type, $wpdb;
  if($post_type == "recipe"){
- 
+     error_log(print_r($post, true));
+     
+     //TODO: Erstmal alle Zutaten löschen und neu anlegen. Später: abgleich bestehender Daten und nur aktualisieren. Löschen nach FK ist auch nicht optimal
+     $wpdb->query("DELETE FROM ".$wpdb->prefix."ZM_Rezept_Map WHERE FK_WP_Posts_ID = " .$post->ID );
+     //TODO: Etwas rudimentär und unperformant. Wird später noch optimiert. Vor Allem muss noch dringend parametrisiert und plausibilisiert werden
+     foreach($_POST['zmZutat'] as $key => $zutat){
+         //Leere Werte noch zu null Werten für die DB
+         $wpdb->query("INSERT INTO ".$wpdb->prefix."ZM_Rezept_Map (FK_Zutat, FK_WP_Posts_ID, FK_Einheit, Menge, Zusatz, Gruppe) VALUES (".$_POST['zmZutat'][$key].", ".$post->ID.",".$_POST['zmEinheit'][$key].", '".$_POST['zmMenge'][$key]."', '".$_POST['zmZusatz'][$key]."', '".$_POST['zmGruppe'][$key]."')");
+     }
  }
- 
- 
- $msg = 'Is this un update? ';
- $msg .= $update ? 'Yes.' : 'No.';
- wp_die( $msg );
- }*/
+
+ }
 
 function zmAjaxHandler() {
     global $wpdb; // this is how you get access to the database
@@ -95,20 +99,26 @@ add_action( 'wp_ajax_zmAJAX', 'zmAjaxHandler' );
 
 //Die Funktion, die inital im Backend aufgerufen wird, wenn man den Punkt "Zutaten-Manager" auswählt
 function zutatenManagerInit(){
+    if ($_GET['migration'] == "true"){
+        migration();
+    }else{
+        
+    
     ?>
-    <div id="tabs">
-    	<ul>
-    		<li><a href="#tabs-1">Zutaten</a>
-    		<li><a href="#tabs-2">Warengruppen</a>
-    		<li><a href="#tabs-3">Einheiten</a>
-    	</ul>
-    
-    	<div id="tabs-1"><?php include 'zutaten_overview.php'; ?></div>
-    	<div id="tabs-2"><?php include 'warengruppen_overview.php'; ?></div>
-    	<div id="tabs-3"><?php echo "Einheiten"; ?></div>
-    </div>
+        <div id="tabs">
+        	<ul>
+        		<li><a href="#tabs-1">Zutaten</a>
+        		<li><a href="#tabs-2">Warengruppen</a>
+        		<li><a href="#tabs-3">Einheiten</a>
+        	</ul>
+        
+        	<div id="tabs-1"><?php include 'zutaten_overview.php'; ?></div>
+        	<div id="tabs-2"><?php include 'warengruppen_overview.php'; ?></div>
+        	<div id="tabs-3"><?php echo "Einheiten"; ?></div>
+        </div>
+        
 <?php 
-    
+    }
 }
 
 
@@ -170,28 +180,24 @@ function contentZutatenManagerMetaBox(){
     <table id="ZMIngredientTable">
         <tr><th>Menge</th><th>Einheit</th><th>Zutat</th><th>Zusatzbeschreibung</th><th>Gruppe</th><th>Aktion</th></tr>
         <?php 
+        $i=0;
+        $unitDDBuffer = "";
         foreach($oRezept as $oIngredient){
-            $unitDDBuffer = "<select>";
+            $unitDDBuffer = '<select name="zmEinheit['.$i.']">';
             foreach($units as $unit){
-                
-                /*switch(strtolower($unit->Typ)){
-                    case "g":
-                    case "kg":
-                    case "ml":
-                    case "l":
-                        $unit->Typ = "<b>".$unit->Typ."</b>";
-                }*/
                 $unitDDBuffer .= '<option '.($unit->PK_Einheit == $oIngredient->FK_Einheit ? "selected":"").' value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
             }
             $unitDDBuffer .= "</select>";
+           
             echo ('<tr>
-                <td><input size="5" type="text" value="'.$oIngredient->Menge.'" name="zmMenge" /></td>
+                <td><input size="5" type="text" value="'.$oIngredient->Menge.'" name="zmMenge['.$i.']" /></td>
                 <td>'.$unitDDBuffer.'</td>
-                <td><input type="hidden" /><b>'.$oIngredient->Bezeichnung.'</b></td>
-                <td><input type="text" value="'.$oIngredient->Zusatz.'" name="zmMenge" /></td>
-                <td><input type="text" value="'.$oIngredient->Gruppe.'" /></td>
+                <td><input type="hidden" value="'.$oIngredient->PK_Zutat.'" name="zmZutat['.$i.']" /><b>'.$oIngredient->Bezeichnung.'</b></td>
+                <td><input type="text" name="zmZusatz['.$i.']" value="'.$oIngredient->Zusatz.'" /></td>
+                <td><input type="text" name="zmGruppe['.$i.']" value="'.$oIngredient->Gruppe.'" /></td>
                 <td><a href="javascript:void(0);" onClick="$(this).parent().parent().remove();" id="zmDeleteRowLink">Löschen</a></td>
             </tr>');
+            $i++;
         }
         
         ?>
@@ -200,4 +206,22 @@ function contentZutatenManagerMetaBox(){
 <input type="hidden" id="hiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer) ?>" />
     <?php 
 }
+
+//Temporäre Fkt für die Migration
+function migration(){
+    global $wpdb;
+    $postmeta = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'recipe_ingredient';");
+   
+    echo('<table style="border:1px">');
+    echo ('<tr><th>id</th><th>Postmeta</th><th>Migriert</th></tr>');
+    
+    foreach($postmeta as $meta){
+        $newRecipe = Zutatenmanager::buildRezeptString($meta->post_id);
+        echo ('<tr><td><b>'.$meta->post_id.'</b></td><td><pre>'.$meta->meta_value.'</pre></td><td><pre>'.$newRecipe.'</td></tr>');
+    }
+    	
+    echo('</table>');
+    
+}
+
 ?>
