@@ -14,10 +14,7 @@ function ingredientTableAddRow(){
       rowBuffer += "<td><b>"+text+"</b></td>";
       //rowBuffer += "<td><select class=\"subrecipeGroupDD\"><option></option></select></td>";    
       rowBuffer += "<td><input type=\"text\" value=\"\"/></td>";    
-<<<<<<< HEAD
       rowBuffer += "<td><input type=\"text\" value=\"\"/></td>";    
-=======
->>>>>>> branch 'master' of https://github.com/Timbo1a/tnwphz.git
       rowBuffer += "<td><a href=\"javascript:void(0);\" onClick=\"$(this).parent().parent().remove();\" id=\"zmDeleteRowLink\">Löschen</a></td>";
   rowBuffer += "</tr>";
 
