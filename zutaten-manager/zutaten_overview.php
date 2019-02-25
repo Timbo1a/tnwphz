@@ -6,7 +6,8 @@
 
         $.post(endpoint, { action: "zmAJAX", function: "loadProductGroups" })
             .done(function (data) {
-                warengruppe = JSON.parse(data);
+                //warengruppe = JSON.parse(data);
+                warengruppe = data.data;
                 //Warengruppen dem Hinzufügen-Dialog hinzufügen
                 addWGToAddDialog();
             })

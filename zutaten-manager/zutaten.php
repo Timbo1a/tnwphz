@@ -11,29 +11,34 @@
  */
 require_once 'Zutatenmanager.php';
 
+//Admin Page
 function pw_load_scripts($hook) {
-    if( $hook != 'toplevel_page_zutaten' ) return;
-    
-    wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
-    //TODO: Eigentlich werden die Skripte bereits geladen...
-    //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
-    //wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
-    wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
+    if( $hook == 'toplevel_page_zutaten' ){
+        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
+        //TODO: Eigentlich werden die Skripte bereits geladen...
+        //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
+        //wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
+        wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
+    }
+
 }
 add_action('admin_enqueue_scripts', 'pw_load_scripts');
 
-function admin_style($hook) {
-    //     if( $hook != 'toplevel_page_zutaten' ) return
-    wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css' , dirname(__FILE__) ) );
-}
-//add_action('admin_enqueue_scripts', 'admin_style');
-add_action('admin_enqueue_scripts', 'admin_post');
+// function admin_style($hook) {
+//     error_log("padmin_style");
+//     //     if( $hook != 'toplevel_page_zutaten' ) return
+//     wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css' , dirname(__FILE__) ) );
+// }
+// //add_action('admin_enqueue_scripts', 'admin_style');
+// add_action('admin_enqueue_scripts', 'admin_post');
 
+//Rezepte Aufruf
 function recipe_admin_script() {
     global $post_type;
     if( 'recipe' == $post_type ){
         wp_enqueue_script( 'zm-selectPlugin', plugins_url( 'zutaten/js/select2Plugin.min.js' , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-custom-post', plugins_url( 'zutaten/js/zm-custom-post.js' , dirname(__FILE__) ) );
         wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/zmIng.css' , dirname(__FILE__) ) );
     }
 }
@@ -123,7 +128,7 @@ function zutatenManagerInit(){
 
 
 //    AJAX Kram erstmal hier..
-function ajaxLoadProductGroups(){return json_encode(Zutatenmanager::loadWarengruppen());}
+function ajaxLoadProductGroups(){return '{"data":'.json_encode(Zutatenmanager::loadWarengruppen()).'}';}
 function ajaxLoadAllIngredients(){
     global $wpdb;
     return '{"data":'.json_encode($wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, Bezeichnung, Energie_KJ, Fett,
@@ -165,7 +170,16 @@ function contentZutatenManagerMetaBox(){
     Anklicken um eine Zutat auszuwählen:<br/>
 <select class="js-example-basic-single" name="state"></select><button id="zmAddIngredientToRecipe">Dem Rezept hinzufügen</button>
 </label>
-
+<?php 
+$unitDDBuffer = "";
+$i=0;
+    $unitDDBuffer = '<select name="zmEinheit[%nRows%]">';
+    foreach($units as $unit){
+        $unitDDBuffer .= '<option value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
+    }
+    $unitDDBuffer .= "</select>";
+?>
+<input type="hidden" id="zmHiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer); ?>" />
 <!-- Rezeptegruppenverwaltung -->
 <!-- Für später
 <br/>
@@ -212,10 +226,13 @@ function migration(){
     global $wpdb;
     $postmeta = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'recipe_ingredient';");
    
+    
     echo('<table style="border:1px">');
     echo ('<tr><th>id</th><th>Postmeta</th><th>Migriert</th></tr>');
     
     foreach($postmeta as $meta){
+        //$wpdb->query("INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (".$meta->post_id.", 'migrated', 'true')");
+        $ids = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'migrated' AND post_id = " .$meta->post_id);
         $newRecipe = Zutatenmanager::buildRezeptString($meta->post_id);
         echo ('<tr><td><b>'.$meta->post_id.'</b></td><td><pre>'.$meta->meta_value.'</pre></td><td><pre>'.$newRecipe.'</td></tr>');
     }

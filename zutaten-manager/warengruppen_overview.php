@@ -16,11 +16,10 @@ $(document).ready(function () {
           "columns": [
               { "data": "PK_Warengruppe" },
               { "data": "Bezeichnung" }
-          ]
-          
+          ]     
 
 	 });
-	
+
 });
 
 </script>
@@ -32,14 +31,12 @@ $(document).ready(function () {
                 <tr>
                     <th>ID</th>
                     <th>Bezeichnung</th>
-                    <th></th>
                 </tr>
             </thead>
             <tfoot>
                 <tr>
                     <th>ID</th>
                     <th>Bezeichnung</th>
-                    <th></th>
                 </tr>
             </tfoot>
         </table>
