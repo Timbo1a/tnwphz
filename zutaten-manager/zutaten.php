@@ -14,10 +14,10 @@ require_once 'Zutatenmanager.php';
 //Admin Page
 function pw_load_scripts($hook) {
     if( $hook == 'toplevel_page_zutaten' ){
-        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
         //TODO: Eigentlich werden die Skripte bereits geladen...
-        //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
-        //wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
         wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css' , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
     }
