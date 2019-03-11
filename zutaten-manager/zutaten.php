@@ -15,8 +15,8 @@ require_once 'Zutatenmanager.php';
 function pw_load_scripts($hook) {
     if( $hook == 'toplevel_page_zutaten' ){
         //TODO: Eigentlich werden die Skripte bereits geladen...
-        //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js?'.rand(1,99) , dirname(__FILE__) ) );
