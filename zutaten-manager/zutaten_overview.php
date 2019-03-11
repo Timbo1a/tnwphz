@@ -49,7 +49,7 @@
                     },
                     {
                         "render": function (data, type, row) {
-                            return "<input class=\"rowInputMember\" id=\"rowInputID_Bezeichnung\" size=\"50\" type=\"text\" value=\"" + data + "\" />";
+                            return "<span style=\"display:none;\">"+data+"</span><input class=\"rowInputMember\" id=\"rowInputID_Bezeichnung\" size=\"50\" type=\"text\" value=\"" + data + "\" />";
                         },
                         "targets": 1
                     },
@@ -57,10 +57,15 @@
                         "render": function (data, type, row) {
                             //Alle Warengruppen iterieren und Vorauswahl treffen
                             var buf = '<select id=\"rowInputID_FK_Warengruppe\" class="rowInputMember">';
+                            var searchField = "";
                             $(warengruppe).each(function () {
                                 buf += '<option value="' + this.PK_Warengruppe + '" ' + (data == this.PK_Warengruppe ? 'selected' : '') + ' >' + this.Bezeichnung + '</option>';
+                                if(data == this.PK_Warengruppe) searchField = this.Bezeichnung;
                             });
                             buf += '</select>';
+                            
+                            //Für die Suche:
+                            buf = '<span style="display:none;">'+searchField+'</span>' + buf;
                             return buf;
                         },
                         "targets": 2,
@@ -69,7 +74,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Energie_KJ class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Energie_KJ\">kj</label>";
+                            return "<input id=\"rowInputID_Energie_KJ\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Energie_KJ\">kj</label>";
                         },
                         "targets": 3,
                         "width": "1%"
@@ -77,7 +82,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Fett\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Fett\">g</label>";
+                            return "<input id=\"rowInputID_Fett\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Fett\"></label>";
                         },
                         "targets": 4,
                         "width": "1%"
@@ -85,7 +90,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Fett_gesaettigt\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Fett_gesaettigt\">g</label>";
+                            return "<input id=\"rowInputID_Fett_gesaettigt\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Fett_gesaettigt\"></label>";
                         },
                         "targets": 5,
                         "width": "1%"
@@ -93,7 +98,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Kohlenhydrate\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Kohlenhydrate\">g</label>";
+                            return "<input id=\"rowInputID_Kohlenhydrate\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Kohlenhydrate\"></label>";
                         },
                         "targets": 6,
                         "width": "1%"
@@ -101,7 +106,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Kohlenhydrate_Zucker\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Kohlenhydrate_Zucker\">g</label>";
+                            return "<input id=\"rowInputID_Kohlenhydrate_Zucker\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Kohlenhydrate_Zucker\"></label>";
                         },
                         "targets": 7,
                         "width": "1%"
@@ -109,7 +114,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Eiweiss\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Eiweiss\">g</label>";
+                            return "<input id=\"rowInputID_Eiweiss\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Eiweiss\"></label>";
                         },
                         "targets": 8,
                         "width": "1%"
@@ -117,7 +122,7 @@
                     {
                         "render": function (data, type, row) {
                             if (data == null) data = "";
-                            return "<input id=\"rowInputID_Salz\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Salz\">g</label>";
+                            return "<input id=\"rowInputID_Salz\" class=\"rowInputMember\" size=\"4\" type=\"text\" value=\"" + data + "\" /><label class=\"inRowLabel\" for=\"rowInputID_Salz\"></label>";
                         },
                         "targets": 9,
                         "width": "1%"
@@ -158,27 +163,28 @@
                     $(element).unbind("change");
 
                     element.on("change", function () {
-                        //Sync data source with table manually
-                        table.row(row).data().Bezeichnung = $('#rowInputID_Bezeichnung').val();
-                        table.row(row).data().FK_Warengruppe = $('#rowInputID_FK_Warengruppe').val();
-                        table.row(row).data().Energie_KJ = $('#rowInputID_Energie_KJ').val();
-                        table.row(row).data().Fett = $('#rowInputID_Fett').val();
-                        table.row(row).data().Fett_gesaettigt = $('#rowInputID_Fett_gesaettigt').val();
-                        table.row(row).data().Kohlenhydrate = $('#rowInputID_Kohlenhydrate').val();
-                        table.row(row).data().Kohlenhydrate_Zucker = $('#rowInputID_Kohlenhydrate_Zucker').val();
-                        table.row(row).data().Eiweiss = $('#rowInputID_Eiweiss').val();
-                        table.row(row).data().Salz = $('#rowInputID_Salz').val();
-                        table.row(row).data().Einheit = $('#rowInputID_Einheit').val();
-                        table.row(row).data().immer_zuhause = $('#rowInputID_immer_zuhause').val();
-
+                        var thisRow = $(this).parent().parent();
+                        //ID zu Namen ändern, da ID eindeutig sein sollte.
+                        table.row(row).data().Bezeichnung = $(thisRow).find('#rowInputID_Bezeichnung').val();
+                        table.row(row).data().FK_Warengruppe = $(thisRow).find('#rowInputID_FK_Warengruppe').val();
+                        table.row(row).data().Energie_KJ = $(thisRow).find('#rowInputID_Energie_KJ').val();
+                        table.row(row).data().Fett = $(thisRow).find('#rowInputID_Fett').val()
+                        table.row(row).data().Fett_gesaettigt = $(thisRow).find('#rowInputID_Fett_gesaettigt').val();
+                        table.row(row).data().Kohlenhydrate = $(thisRow).find('#rowInputID_Kohlenhydrate').val();
+                        table.row(row).data().Kohlenhydrate_Zucker = $(thisRow).find('#rowInputID_Kohlenhydrate_Zucker').val();
+                        table.row(row).data().Eiweiss = $(thisRow).find('#rowInputID_Eiweiss').val();
+                        table.row(row).data().Salz = $(thisRow).find('#rowInputID_Salz').val();
+                        table.row(row).data().Einheit = $(thisRow).find('#rowInputID_Einheit option:selected').val();
+                        table.row(row).data().immer_zuhause = $(thisRow).find('#rowInputID_immer_zuhause').is(':checked');
+//console.log(table.row(row).data());
                         //AJAX Delete
                         $.post(endpoint, { action: "zmAJAX", function: "updateIngredient", data: rowData })
                             .done(function (data) {
-                                table.ajax.reload();
+                                table.ajax.reload(null, false);
                             })
                             .fail(function (data) {
                                 alert("Fehler beim Löschen");
-                                table.ajax.reload();
+                                table.ajax.reload(null, false);
                             });
                     });
 
@@ -189,7 +195,7 @@
                         //AJAX Delete
                         $.post(endpoint, { action: "zmAJAX", function: "deleteIngredient", id: rowData.PK_Zutat })
                             .done(function (data) {
-                                table.ajax.reload();
+                                table.ajax.reload(null, false);
                             })
                             .fail(function (data) {
                                 writeMessage('Fehler beim Löschen des Datensatzes: ' + data, "error");
@@ -204,12 +210,13 @@
                 var fkwg = $('#zmIngredientFKWG').val();
                 $.post(endpoint, { action: "zmAJAX", function: "addIngredient", "bezeichnung": bez, "FK_Warengruppe": fkwg })
                     .done(function (data) {
-                        table.ajax.reload();
+                        table.ajax.reload(null, false);
                     })
                     .fail(function (data) {
                         alert("Fehler beim Hinzufügen");
                     });
             });
+
         });
 
         //Lädt die Warengruppen aus dem Objekt "Warengruppen" und populiert Dropdown

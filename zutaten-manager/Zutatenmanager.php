@@ -39,6 +39,38 @@ class Zutatenmanager{
         return true;
     }
     
+    static function updateIngredient($data){
+        global $wpdb;
+        if($data['Energie_KJ'] == 0 || $data['Energie_KJ'] == "") $data['Energie_KJ'] = null;
+        if($data['Fett'] == 0 || $data['Fett'] == "") $data['Fett'] = null;
+        if($data['Fett_gesaettigt'] == 0 || $data['Fett_gesaettigt'] == "") $data['Fett_gesaettigt'] = null;
+        if($data['Kohlenhydrate'] == 0 || $data['Kohlenhydrate'] == "") $data['Kohlenhydrate'] = null;
+        if($data['Kohlenhydrate_Zucker'] == 0 || $data['Kohlenhydrate_Zucker'] == "") $data['Kohlenhydrate_Zucker'] = null;
+        if($data['Eiweiss'] == 0 || $data['Eiweiss'] == "") $data['Eiweiss'] = null;
+        if($data['Salz'] == 0 || $data['Salz'] == "") $data['Salz'] = null;
+        if($data['Einheit'] == 0 || $data['Einheit'] == "") $data['Einheit'] = null;
+        if($data['immer_zuhause'] == "" || $data['immer_zuhause'] == "false"){
+            $data['immer_zuhause'] = 0;
+        } else{
+            $data['immer_zuhause'] = 1;
+        }
+        
+        $updateData = array(
+            "FK_Warengruppe" => $data['FK_Warengruppe'],
+            "Bezeichnung" => $data['Bezeichnung'],
+            "Energie_KJ" => $data['Energie_KJ'],
+            "Fett" => $data['Fett'],
+            "Fett_gesaettigt" => $data['Fett_gesaettigt'],
+            "Kohlenhydrate" => $data['Kohlenhydrate'],
+            "Kohlenhydrate_Zucker" => $data['Kohlenhydrate_Zucker'],
+            "Eiweiss" => $data['Eiweiss'],
+            "Salz" => $data['Salz'],
+            "Einheit" => $data['Einheit'],
+            "immer_zuhause" => $data['immer_zuhause']
+        );
+        return $wpdb->update($wpdb->prefix . 'ZM_Zutat', $updateData, array('PK_Zutat' => $data['PK_Zutat']));
+    }
+    
     static function addZutat($name, $fk_warengruppe){
         global $wpdb;
         $table = $wpdb->prefix.'ZM_Zutat';

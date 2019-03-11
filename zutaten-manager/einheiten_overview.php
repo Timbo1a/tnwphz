@@ -16,8 +16,7 @@ $(document).ready(function () {
           "columns": [
               { "data": "PK_Warengruppe" },
               { "data": "Bezeichnung" }
-          ],
-          "pageLength": 25     
+          ]     
 
 	 });
 

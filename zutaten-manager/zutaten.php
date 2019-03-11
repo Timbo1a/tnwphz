@@ -15,13 +15,13 @@ require_once 'Zutatenmanager.php';
 function pw_load_scripts($hook) {
     if( $hook == 'toplevel_page_zutaten' ){
         //TODO: Eigentlich werden die Skripte bereits geladen...
-        wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js' , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js' , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js' , dirname(__FILE__) ) );
-        wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css' , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js' , dirname(__FILE__) ) );
+        //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js?'.rand(1,99) , dirname(__FILE__) ) );
     }
-
+    
 }
 add_action('admin_enqueue_scripts', 'pw_load_scripts');
 
@@ -37,9 +37,9 @@ add_action('admin_enqueue_scripts', 'pw_load_scripts');
 function recipe_admin_script() {
     global $post_type;
     if( 'recipe' == $post_type ){
-        wp_enqueue_script( 'zm-selectPlugin', plugins_url( 'zutaten/js/select2Plugin.min.js' , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-custom-post', plugins_url( 'zutaten/js/zm-custom-post.js' , dirname(__FILE__) ) );
-        wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/zmIng.css' , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-selectPlugin', plugins_url( 'zutaten/js/select2Plugin.min.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-custom-post', plugins_url( 'zutaten/js/zm-custom-post.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/zmIng.css?'.rand(1,99)  , dirname(__FILE__) ) );
     }
 }
 add_action( 'admin_print_scripts-post-new.php', 'recipe_admin_script' );
@@ -58,20 +58,20 @@ add_action('admin_menu', 'zutaten_management');
 //action on save
 add_action( 'save_post', 'zmSavePostRecipe', 10, 3 );
 function zmSavePostRecipe( $post_ID, $post, $update ) {
- global $post_type, $wpdb;
- if($post_type == "recipe"){
-     error_log(print_r($post, true));
-     
-     //TODO: Erstmal alle Zutaten löschen und neu anlegen. Später: abgleich bestehender Daten und nur aktualisieren. Löschen nach FK ist auch nicht optimal
-     $wpdb->query("DELETE FROM ".$wpdb->prefix."ZM_Rezept_Map WHERE FK_WP_Posts_ID = " .$post->ID );
-     //TODO: Etwas rudimentär und unperformant. Wird später noch optimiert. Vor Allem muss noch dringend parametrisiert und plausibilisiert werden
-     foreach($_POST['zmZutat'] as $key => $zutat){
-         //Leere Werte noch zu null Werten für die DB
-         $wpdb->query("INSERT INTO ".$wpdb->prefix."ZM_Rezept_Map (FK_Zutat, FK_WP_Posts_ID, FK_Einheit, Menge, Zusatz, Gruppe) VALUES (".$_POST['zmZutat'][$key].", ".$post->ID.",".$_POST['zmEinheit'][$key].", '".$_POST['zmMenge'][$key]."', '".$_POST['zmZusatz'][$key]."', '".$_POST['zmGruppe'][$key]."')");
-     }
- }
-
- }
+    global $post_type, $wpdb;
+    if($post_type == "recipe"){
+        error_log(print_r($post, true));
+        
+        //TODO: Erstmal alle Zutaten löschen und neu anlegen. Später: abgleich bestehender Daten und nur aktualisieren. Löschen nach FK ist auch nicht optimal. Zusammenfassung der Update Methode
+        $wpdb->query("DELETE FROM ".$wpdb->prefix."ZM_Rezept_Map WHERE FK_WP_Posts_ID = " .$post->ID );
+        //TODO: Etwas rudimentär und unperformant. Wird später noch optimiert. Vor Allem muss noch dringend parametrisiert und plausibilisiert werden
+        foreach($_POST['zmZutat'] as $key => $zutat){
+            //Leere Werte noch zu null Werten für die DB
+            $wpdb->query("INSERT INTO ".$wpdb->prefix."ZM_Rezept_Map (FK_Zutat, FK_WP_Posts_ID, FK_Einheit, Menge, Zusatz, Gruppe) VALUES (".$_POST['zmZutat'][$key].", ".$post->ID.",".$_POST['zmEinheit'][$key].", '".$_POST['zmMenge'][$key]."', '".$_POST['zmZusatz'][$key]."', '".$_POST['zmGruppe'][$key]."')");
+        }
+    }
+    
+}
 
 function zmAjaxHandler() {
     global $wpdb; // this is how you get access to the database
@@ -81,6 +81,9 @@ function zmAjaxHandler() {
         
         case "loadProductGroups":
             echo ajaxLoadProductGroups();
+            break;
+        case "loadProductUnits":
+            echo ajaxLoadProductUnits();
             break;
         case "zmAllIngredients":
             echo ajaxLoadAllIngredients($_POST['term']);
@@ -94,6 +97,10 @@ function zmAjaxHandler() {
         case "deleteIngredient":
             echo ajaxDeleteIngredient();
             break;
+        case "updateIngredient":
+            echo ajaxUpdateIngredient();
+            break;
+            
     }
     
     wp_die(); // this is required to terminate immediately and return a proper response
@@ -108,8 +115,8 @@ function zutatenManagerInit(){
         migration();
     }else{
         
-    
-    ?>
+        
+        ?>
         <div id="tabs">
         	<ul>
         		<li><a href="#tabs-1">Zutaten</a>
@@ -119,7 +126,7 @@ function zutatenManagerInit(){
         
         	<div id="tabs-1"><?php include 'zutaten_overview.php'; ?></div>
         	<div id="tabs-2"><?php include 'warengruppen_overview.php'; ?></div>
-        	<div id="tabs-3"><?php echo "Einheiten"; ?></div>
+        	<div id="tabs-3"><?php //include 'einheiten_overview.php'; ?></div>
         </div>
         
 <?php 
@@ -135,6 +142,9 @@ function ajaxLoadAllIngredients(){
   Fett_gesaettigt, Kohlenhydrate, Kohlenhydrate_Zucker, Eiweiss, Salz, Einheit, immer_zuhause, created,
   (SELECT COUNT(FK_Zutat) FROM ".$wpdb->prefix."ZM_Rezept_Map WHERE FK_Zutat = PK_Zutat) as 'referenzen' FROM ".$wpdb->prefix."ZM_Zutat")).'}';
 }
+function ajaxLoadProductUnits(){
+    //TODO
+}
 function simpleAjaxLoadAllIngredients($bezeichnung = ""){
     global $wpdb;
     if (!$bezeichnung == "") $add = " WHERE Bezeichnung LIKE '" . $bezeichnung . "%'";
@@ -142,14 +152,15 @@ function simpleAjaxLoadAllIngredients($bezeichnung = ""){
         Fett_gesaettigt, Kohlenhydrate, Kohlenhydrate_Zucker, Eiweiss, Salz, Einheit, immer_zuhause, created FROM ".$wpdb->prefix."ZM_Zutat " .$add)).'}';
 }
 function ajaxAddIngredient(){
-    return Zutatenmanager::addZutat($_POST['bezeichnung'],$_POST['FK_Warengruppe']);
+    return '{"data":'.json_encode(Zutatenmanager::addZutat($_POST['bezeichnung'],$_POST['FK_Warengruppe'])).'}';
 }
 function ajaxDeleteIngredient(){
-    return Zutatenmanager::deleteIngredient($_POST['id']);
+    return '{"data":'.json_encode(Zutatenmanager::deleteIngredient($_POST['id'])).'}';
+}
+function ajaxUpdateIngredient(){
+    return '{"data":'.json_encode(Zutatenmanager::updateIngredient($_POST['data'])).'}';
 }
 ///   //AJAX
-
-
 
 function createZutatenManagerMetabox() {add_meta_box('idZutatenManagerMetabox', 'Zutaten Manager 2.0', 'contentZutatenManagerMetaBox', 'recipe', 'normal', 'default');}
 add_action( 'add_meta_boxes', 'createZutatenManagerMetabox' );
@@ -166,77 +177,76 @@ function contentZutatenManagerMetaBox(){
     ?>
 
 
-<label for="js-example-basic-single">
-    Anklicken um eine Zutat auszuwählen:<br/>
-<select class="js-example-basic-single" name="state"></select><button id="zmAddIngredientToRecipe">Dem Rezept hinzufügen</button>
-</label>
-<?php 
-$unitDDBuffer = "";
-$i=0;
-    $unitDDBuffer = '<select name="zmEinheit[%nRows%]">';
-    foreach($units as $unit){
-        $unitDDBuffer .= '<option value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
-    }
-    $unitDDBuffer .= "</select>";
-?>
-<input type="hidden" id="zmHiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer); ?>" />
-<!-- Rezeptegruppenverwaltung -->
-<!-- Für später
-<br/>
-<select class="selectboxMulti" id="zmSelectboxMulti" name="states[]" multiple="multiple">
-    <option value="AL">Für den Nachtisch</option>
-    <option value="WY">Für das Dressing</option>
-</select><br />
-<input type="text" value="asd" id="zmSubRecipeGroupItemName" /><button onclick="javascript:addSubRecipeGroupItem($('#zmSubRecipeGroupItemName').val())">Add</button>
--->
-<!-- //Rezeptegruppenverwaltung -->
-<form>
-    <table id="ZMIngredientTable">
-        <tr><th>Menge</th><th>Einheit</th><th>Zutat</th><th>Zusatzbeschreibung</th><th>Gruppe</th><th>Aktion</th></tr>
-        <?php 
-        $i=0;
-        $unitDDBuffer = "";
-        foreach($oRezept as $oIngredient){
-            $unitDDBuffer = '<select name="zmEinheit['.$i.']">';
-            foreach($units as $unit){
-                $unitDDBuffer .= '<option '.($unit->PK_Einheit == $oIngredient->FK_Einheit ? "selected":"").' value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
-            }
-            $unitDDBuffer .= "</select>";
-           
-            echo ('<tr>
-                <td><input size="5" type="text" value="'.$oIngredient->Menge.'" name="zmMenge['.$i.']" /></td>
-                <td>'.$unitDDBuffer.'</td>
-                <td><input type="hidden" value="'.$oIngredient->PK_Zutat.'" name="zmZutat['.$i.']" /><b>'.$oIngredient->Bezeichnung.'</b></td>
-                <td><input type="text" name="zmZusatz['.$i.']" value="'.$oIngredient->Zusatz.'" /></td>
-                <td><input type="text" name="zmGruppe['.$i.']" value="'.$oIngredient->Gruppe.'" /></td>
-                <td><a href="javascript:void(0);" onClick="$(this).parent().parent().remove();" id="zmDeleteRowLink">Löschen</a></td>
-            </tr>');
-            $i++;
-        }
-        
-        ?>
-    </table>
-</form>
-<input type="hidden" id="hiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer) ?>" />
+    <label for="js-example-basic-single">
+        Anklicken um eine Zutat auszuwählen:<br/>
+    <select class="js-example-basic-single" name="state"></select><button id="zmAddIngredientToRecipe">Dem Rezept hinzufügen</button>
+    </label>
     <?php 
-}
-
-//Temporäre Fkt für die Migration
-function migration(){
-    global $wpdb;
-    $postmeta = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'recipe_ingredient';");
-   
-    
-    echo('<table style="border:1px">');
-    echo ('<tr><th>id</th><th>Postmeta</th><th>Migriert</th></tr>');
-    
-    foreach($postmeta as $meta){
-        //$wpdb->query("INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (".$meta->post_id.", 'migrated', 'true')");
-        $ids = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'migrated' AND post_id = " .$meta->post_id);
-        $newRecipe = Zutatenmanager::buildRezeptString($meta->post_id);
-        echo ('<tr><td><b>'.$meta->post_id.'</b></td><td><pre>'.$meta->meta_value.'</pre></td><td><pre>'.$newRecipe.'</td></tr>');
+    $unitDDBuffer = "";
+    $i=0;
+        $unitDDBuffer = '<select name="zmEinheit[%nRows%]">';
+        foreach($units as $unit){
+            $unitDDBuffer .= '<option value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
+        }
+        $unitDDBuffer .= "</select>";
+    ?>
+    <input type="hidden" id="zmHiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer); ?>" />
+    <!-- Rezeptegruppenverwaltung -->
+    <!-- Für später
+    <br/>
+    <select class="selectboxMulti" id="zmSelectboxMulti" name="states[]" multiple="multiple">
+        <option value="AL">Für den Nachtisch</option>
+        <option value="WY">Für das Dressing</option>
+    </select><br />
+    <input type="text" value="asd" id="zmSubRecipeGroupItemName" /><button onclick="javascript:addSubRecipeGroupItem($('#zmSubRecipeGroupItemName').val())">Add</button>
+    -->
+    <!-- //Rezeptegruppenverwaltung -->
+    <form>
+        <table id="ZMIngredientTable">
+            <tr><th>Menge</th><th>Einheit</th><th>Zutat</th><th>Zusatzbeschreibung</th><th>Gruppe</th><th>Aktion</th></tr>
+            <?php 
+            $i=0;
+            $unitDDBuffer = "";
+            foreach($oRezept as $oIngredient){
+                $unitDDBuffer = '<select name="zmEinheit['.$i.']">';
+                foreach($units as $unit){
+                    $unitDDBuffer .= '<option '.($unit->PK_Einheit == $oIngredient->FK_Einheit ? "selected":"").' value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
+                }
+                $unitDDBuffer .= "</select>";
+            
+                echo ('<tr>
+                    <td><input size="5" type="text" value="'.$oIngredient->Menge.'" name="zmMenge['.$i.']" /></td>
+                    <td>'.$unitDDBuffer.'</td>
+                    <td><input type="hidden" value="'.$oIngredient->PK_Zutat.'" name="zmZutat['.$i.']" /><b>'.$oIngredient->Bezeichnung.'</b></td>
+                    <td><input type="text" name="zmZusatz['.$i.']" value="'.$oIngredient->Zusatz.'" /></td>
+                    <td><input type="text" name="zmGruppe['.$i.']" value="'.$oIngredient->Gruppe.'" /></td>
+                    <td><a href="javascript:void(0);" onClick="$(this).parent().parent().remove();" id="zmDeleteRowLink">Löschen</a></td>
+                </tr>');
+                $i++;
+            }
+            
+            ?>
+        </table>
+    </form>
+    <input type="hidden" id="hiddenSelectBoxForAddFunction" value="<?php echo base64_encode($unitDDBuffer) ?>" />
+        <?php 
     }
-    	
+
+        //Temporäre Fkt für die Migration
+        function migration(){
+            global $wpdb;
+            $postmeta = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'recipe_ingredient';");
+            
+            echo('<table style="border:1px">');
+            echo ('<tr><th>id</th><th>Postmeta</th><th>Migriert</th></tr>');
+            
+            foreach($postmeta as $meta){
+                //$wpdb->query("INSERT INTO wp_postmeta (post_id, meta_key, meta_value) VALUES (".$meta->post_id.", 'migrated', 'true')");
+                $ids = $wpdb->get_results("SELECT * FROM wp_postmeta WHERE meta_key = 'migrated' AND post_id = " .$meta->post_id);
+                $newRecipe = Zutatenmanager::buildRezeptString($meta->post_id);
+                echo ('<tr><td><b>'.$meta->post_id.'</b></td><td><pre>'.$meta->meta_value.'</pre></td><td><pre>'.$newRecipe.'</td></tr>');
+            }
+            
     echo('</table>');
     
 }
