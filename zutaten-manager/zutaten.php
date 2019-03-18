@@ -11,14 +11,20 @@
  */
 require_once 'Zutatenmanager.php';
 
+/*
+TODO: Vernünftige Ein- und Ausgabevalidierung, um XSS vorzugebeugen. Besonders die JSON-Kommunikation muss noch vernünftig kodiert werden.
+*/
+
 //Admin Page
 function pw_load_scripts($hook) {
     if( $hook == 'toplevel_page_zutaten' ){
         //TODO: Eigentlich werden die Skripte bereits geladen...
-        wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery.js?'.rand(1,99)  , dirname(__FILE__) ) );
-        wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-jquery', plugins_url( 'zutaten/js/zm-jquery3.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        //wp_enqueue_script( 'zm-jquery-ui', plugins_url( 'zutaten/js/zm-jquery-ui.js?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt.js?'.rand(1,99)  , dirname(__FILE__) ) );
+        wp_enqueue_script( 'zm-dataTables', plugins_url( 'zutaten/js/zm-dt-buttons.js?'.rand(1,99)  , dirname(__FILE__) ) );
         wp_enqueue_style('admin-styles', plugins_url( 'zutaten/css/dt.css?'.rand(1,99)  , dirname(__FILE__) ) );
+        //wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-dt-responsive.js?'.rand(1,99) , dirname(__FILE__) ) );
         wp_enqueue_script( 'zm-custom', plugins_url( 'zutaten/js/zm-custom.js?'.rand(1,99) , dirname(__FILE__) ) );
     }
     
@@ -67,7 +73,7 @@ function zmSavePostRecipe( $post_ID, $post, $update ) {
         //TODO: Etwas rudimentär und unperformant. Wird später noch optimiert. Vor Allem muss noch dringend parametrisiert und plausibilisiert werden
         foreach($_POST['zmZutat'] as $key => $zutat){
             //Leere Werte noch zu null Werten für die DB
-            $wpdb->query("INSERT INTO ".$wpdb->prefix."ZM_Rezept_Map (FK_Zutat, FK_WP_Posts_ID, FK_Einheit, Menge, Zusatz, Gruppe) VALUES (".$_POST['zmZutat'][$key].", ".$post->ID.",".$_POST['zmEinheit'][$key].", '".$_POST['zmMenge'][$key]."', '".$_POST['zmZusatz'][$key]."', '".$_POST['zmGruppe'][$key]."')");
+            $wpdb->query("INSERT INTO ".$wpdb->prefix."ZM_Rezept_Map (FK_Zutat, FK_WP_Posts_ID, FK_Einheit, Menge, Zusatz, Gruppe) VALUES (".esc_html($_POST['zmZutat'][$key]).", ".$post->ID.",".esc_html($_POST['zmEinheit'][$key]).", '".esc_html($_POST['zmMenge'][$key])."', '".esc_html($_POST['zmZusatz'][$key])."', '".esc_html($_POST['zmGruppe'][$key])."')");
         }
     }
     
@@ -76,7 +82,7 @@ function zmSavePostRecipe( $post_ID, $post, $update ) {
 function zmAjaxHandler() {
     global $wpdb; // this is how you get access to the database
     header("Content-Type: application/json; charset=utf-8");
-    $whatever = intval( $_POST['whatever'] );
+   
     switch($_POST['function']){
         
         case "loadProductGroups":
@@ -86,10 +92,10 @@ function zmAjaxHandler() {
             echo ajaxLoadProductUnits();
             break;
         case "zmAllIngredients":
-            echo ajaxLoadAllIngredients($_POST['term']);
+            echo ajaxLoadAllIngredients(esc_attr($_POST['term']));
             break;
         case "zmSimpleAjaxLoadAllIngredients":
-            echo simpleAjaxLoadAllIngredients($_POST['term']);
+            echo simpleAjaxLoadAllIngredients(esc_attr($_POST['term']));
             break;
         case "addIngredient":
             echo ajaxAddIngredient();
@@ -111,22 +117,30 @@ add_action( 'wp_ajax_zmAJAX', 'zmAjaxHandler' );
 
 //Die Funktion, die inital im Backend aufgerufen wird, wenn man den Punkt "Zutaten-Manager" auswählt
 function zutatenManagerInit(){
+    global $wp;
     if ($_GET['migration'] == "true"){
         migration();
     }else{
-        
-        
         ?>
-        <div id="tabs">
-        	<ul>
-        		<li><a href="#tabs-1">Zutaten</a>
-        		<li><a href="#tabs-2">Warengruppen</a>
-        		<li><a href="#tabs-3">Einheiten</a>
-        	</ul>
-        
-        	<div id="tabs-1"><?php include 'zutaten_overview.php'; ?></div>
-        	<div id="tabs-2"><?php include 'warengruppen_overview.php'; ?></div>
-        	<div id="tabs-3"><?php //include 'einheiten_overview.php'; ?></div>
+        <div id="">
+            <p>
+        		<a href="admin.php?page=zutaten&zm-function=zutaten_overview"><b>Zutaten</b></a> | 
+        		<a href="admin.php?page=zutaten&zm-function=warengruppen_overview"><b>Warengruppen</b></a> | 
+        		<a href="admin.php?page=zutaten&zm-function=einheiten_overview"><b>Einheiten</b></a>
+        	</p>
+            <hr />
+            <?php
+                switch($_GET['zm-function']){
+                    case "warengruppen_overview":
+                        include "warengruppen_overview.php";
+                        break;
+                    case "einheiten_overview":
+                        include "einheiten_overview.php";
+                        break;    
+                    default:
+                        include "zutaten_overview.php";
+                }
+            ?>
         </div>
         
 <?php 
@@ -135,10 +149,10 @@ function zutatenManagerInit(){
 
 
 //    AJAX Kram erstmal hier..
-function ajaxLoadProductGroups(){return '{"data":'.json_encode(Zutatenmanager::loadWarengruppen()).'}';}
+function ajaxLoadProductGroups(){return '{"data":'.wp_json_encode(Zutatenmanager::loadWarengruppen()).'}';}
 function ajaxLoadAllIngredients(){
     global $wpdb;
-    return '{"data":'.json_encode($wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, Bezeichnung, Energie_KJ, Fett,
+    return '{"data":'.wp_json_encode($wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, Bezeichnung, Energie_KJ, Fett,
   Fett_gesaettigt, Kohlenhydrate, Kohlenhydrate_Zucker, Eiweiss, Salz, Einheit, immer_zuhause, created,
   (SELECT COUNT(FK_Zutat) FROM ".$wpdb->prefix."ZM_Rezept_Map WHERE FK_Zutat = PK_Zutat) as 'referenzen' FROM ".$wpdb->prefix."ZM_Zutat")).'}';
 }
@@ -147,18 +161,33 @@ function ajaxLoadProductUnits(){
 }
 function simpleAjaxLoadAllIngredients($bezeichnung = ""){
     global $wpdb;
-    if (!$bezeichnung == "") $add = " WHERE Bezeichnung LIKE '" . $bezeichnung . "%'";
-    return '{"data":'.json_encode($wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, Bezeichnung, Energie_KJ, Fett,
+    if (!$bezeichnung == "") $add = " WHERE Bezeichnung LIKE '" . esc_html($bezeichnung) . "%'";
+    return '{"data":'.wp_json_encode($wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, Bezeichnung, Energie_KJ, Fett,
         Fett_gesaettigt, Kohlenhydrate, Kohlenhydrate_Zucker, Eiweiss, Salz, Einheit, immer_zuhause, created FROM ".$wpdb->prefix."ZM_Zutat " .$add)).'}';
 }
 function ajaxAddIngredient(){
-    return '{"data":'.json_encode(Zutatenmanager::addZutat($_POST['bezeichnung'],$_POST['FK_Warengruppe'])).'}';
+    return '{"data":'.wp_json_encode(Zutatenmanager::addZutat(esc_html($_POST['bezeichnung']),esc_html($_POST['FK_Warengruppe']))).'}';
 }
 function ajaxDeleteIngredient(){
-    return '{"data":'.json_encode(Zutatenmanager::deleteIngredient($_POST['id'])).'}';
+    return '{"data":'.wp_json_encode(Zutatenmanager::deleteIngredient(esc_html($_POST['id']))).'}';
 }
 function ajaxUpdateIngredient(){
-    return '{"data":'.json_encode(Zutatenmanager::updateIngredient($_POST['data'])).'}';
+    $tmpPost = array();
+    $tmpPost['data'] = array(
+        'PK_Zutat' => urldecode($_POST['data']['PK_Zutat']),
+        'FK_Warengruppe' => urldecode($_POST['data']['FK_Warengruppe']),
+        'Bezeichnung' => urldecode($_POST['data']['Bezeichnung']),
+        'Energie_KJ' => urldecode($_POST['data']['Energie_KJ']),
+        'Fett_gesaettigt' => urldecode($_POST['data']['Fett_gesaettigt']),
+        'Kohlenhydrate' => urldecode($_POST['data']['Kohlenhydrate']),
+        'Kohlenhydrate_Zucker' => urldecode($_POST['data']['Kohlenhydrate_Zucker']),
+        'Eiweiss' => urldecode($_POST['data']['Eiweiss']),
+        'Salz' => urldecode($_POST['data']['Salz']),
+        'Einheit' => urldecode($_POST['data']['Einheit']),
+        'immer_zuhause' => urldecode($_POST['data']['immer_zuhause']),
+        'created' => urldecode($_POST['data']['created'])
+    );
+    return '{"data":'.wp_json_encode(Zutatenmanager::updateIngredient($tmpPost['data'])).'}';
 }
 ///   //AJAX
 
@@ -186,7 +215,7 @@ function contentZutatenManagerMetaBox(){
     $i=0;
         $unitDDBuffer = '<select name="zmEinheit[%nRows%]">';
         foreach($units as $unit){
-            $unitDDBuffer .= '<option value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
+            $unitDDBuffer .= '<option value="'.$unit->PK_Einheit.'">'.esc_html($unit->Typ).'</option>';
         }
         $unitDDBuffer .= "</select>";
     ?>
@@ -210,7 +239,7 @@ function contentZutatenManagerMetaBox(){
             foreach($oRezept as $oIngredient){
                 $unitDDBuffer = '<select name="zmEinheit['.$i.']">';
                 foreach($units as $unit){
-                    $unitDDBuffer .= '<option '.($unit->PK_Einheit == $oIngredient->FK_Einheit ? "selected":"").' value="'.$unit->PK_Einheit.'">'.$unit->Typ.'</option>';
+                    $unitDDBuffer .= '<option '.($unit->PK_Einheit == $oIngredient->FK_Einheit ? "selected":"").' value="'.$unit->PK_Einheit.'">'.esc_html($unit->Typ).'</option>';
                 }
                 $unitDDBuffer .= "</select>";
             

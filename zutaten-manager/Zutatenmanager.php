@@ -19,7 +19,7 @@ class Zutatenmanager{
         global $wpdb;
         $pkCond = "";
         if($pkWarengruppe !== null){
-            $pkCond = " AND PK_Zutat = " . $pkWarengruppe;
+            $pkCond = " AND PK_Zutat = " . html_esc($pkWarengruppe);
         }
         $zt = $wpdb->get_results("SELECT PK_Zutat, FK_Warengruppe, PK_Warengruppe, zt.Bezeichnung AS 'Zutat_Text', wg.Bezeichnung AS 'Warengruppe_Text'
                                   FROM ".$wpdb->prefix."ZM_Zutat as zt, ".$wpdb->prefix."ZM_Warengruppe as wg WHERE zt.FK_Warengruppe = wg.PK_Warengruppe  ". $pkCond ."
@@ -56,17 +56,17 @@ class Zutatenmanager{
         }
         
         $updateData = array(
-            "FK_Warengruppe" => $data['FK_Warengruppe'],
-            "Bezeichnung" => $data['Bezeichnung'],
-            "Energie_KJ" => $data['Energie_KJ'],
-            "Fett" => $data['Fett'],
-            "Fett_gesaettigt" => $data['Fett_gesaettigt'],
-            "Kohlenhydrate" => $data['Kohlenhydrate'],
-            "Kohlenhydrate_Zucker" => $data['Kohlenhydrate_Zucker'],
-            "Eiweiss" => $data['Eiweiss'],
-            "Salz" => $data['Salz'],
-            "Einheit" => $data['Einheit'],
-            "immer_zuhause" => $data['immer_zuhause']
+            "FK_Warengruppe" => esc_html($data['FK_Warengruppe']),
+            "Bezeichnung" => esc_html($data['Bezeichnung']),
+            "Energie_KJ" => esc_html($data['Energie_KJ']),
+            "Fett" => esc_html($data['Fett']),
+            "Fett_gesaettigt" => esc_html($data['Fett_gesaettigt']),
+            "Kohlenhydrate" => esc_html($data['Kohlenhydrate']),
+            "Kohlenhydrate_Zucker" => esc_html($data['Kohlenhydrate_Zucker']),
+            "Eiweiss" => esc_html($data['Eiweiss']),
+            "Salz" => esc_html($data['Salz']),
+            "Einheit" => esc_html($data['Einheit']),
+            "immer_zuhause" => esc_html($data['immer_zuhause'])
         );
         return $wpdb->update($wpdb->prefix . 'ZM_Zutat', $updateData, array('PK_Zutat' => $data['PK_Zutat']));
     }

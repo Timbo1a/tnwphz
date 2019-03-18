@@ -27,6 +27,7 @@
                     },
                     "responsive": true
                 },
+                rowId : 'PK_Zutat',
                 "columns": [
                     { "data": "PK_Zutat" },
                     { "data": "Bezeichnung" },
@@ -144,12 +145,14 @@
                     },
                     {
                         "render": function (data, type, row) {
-                            var buff = "";
+                            var buff = "<div class=\"delete\">";
                             if (data == null || data == "0") {
-                                buff = "<a class=\"deleteIngredient\" data-pkzutat=\"" + row.PK_Zutat + "\" href=#>Löschen</a>";
+                                buff += "<a class=\"deleteIngredient\" data-pkzutat=\"" + row.PK_Zutat + "\" href=#>Löschen</a>";
                             } else {
-                                buff = data + "x verwendet";
+                                buff += data + "x verwendet";
                             }
+                            buff += "</div>";
+                            buff += "<div style=\"display:none;\" class=\"actualize\"><a href=\"javascript:void(0);\" onClick=\"updateRow('"+encodeURI(JSON.stringify(row))+"');\">Aktualisieren</a></div>";
                             return buff;
                         },
                         "targets": 12,
@@ -176,16 +179,21 @@
                         table.row(row).data().Salz = $(thisRow).find('#rowInputID_Salz').val();
                         table.row(row).data().Einheit = $(thisRow).find('#rowInputID_Einheit option:selected').val();
                         table.row(row).data().immer_zuhause = $(thisRow).find('#rowInputID_immer_zuhause').is(':checked');
-//console.log(table.row(row).data());
+                        table.row(row).data().hasChanged = true;
+
+                        $(thisRow).find('.actualize').show();
+                        $(thisRow).find('.delete').hide();
+                        $(thisRow).css('background-color', '#ed9955');
+                        //console.log(table.row(row).data());
                         //AJAX Delete
-                        $.post(endpoint, { action: "zmAJAX", function: "updateIngredient", data: rowData })
+                        /*$.post(endpoint, { action: "zmAJAX", function: "updateIngredient", data: rowData })
                             .done(function (data) {
                                 table.ajax.reload(null, false);
                             })
                             .fail(function (data) {
                                 alert("Fehler beim Löschen");
                                 table.ajax.reload(null, false);
-                            });
+                            });*/
                     });
 
                     //Klick Event für Löschen dynamisch binden
@@ -196,6 +204,7 @@
                         $.post(endpoint, { action: "zmAJAX", function: "deleteIngredient", id: rowData.PK_Zutat })
                             .done(function (data) {
                                 table.ajax.reload(null, false);
+                                writeMessage('Der Datensatz ' + JSON.stringify(data) + " wurde gelöscht.");
                             })
                             .fail(function (data) {
                                 writeMessage('Fehler beim Löschen des Datensatzes: ' + data, "error");
@@ -211,10 +220,21 @@
                 $.post(endpoint, { action: "zmAJAX", function: "addIngredient", "bezeichnung": bez, "FK_Warengruppe": fkwg })
                     .done(function (data) {
                         table.ajax.reload(null, false);
+                        writeMessage("Zutat " + bez + " erfolgreich mit der ID " + data.data + "  hinzugefügt.")
                     })
                     .fail(function (data) {
                         alert("Fehler beim Hinzufügen");
                     });
+            });
+
+            //TODO: Hier wird für jede Zeile ein eigener AJAX-Call gemacht, das ist suboptimal, funktioniert aber erstmal...
+            $('#updateDT').click(function(){
+                console.log(table.rows().data());
+                $(table.rows().data()).each(function(){
+                    if(typeof(this.hasChanged) == "boolean"){
+                        if(this.hasChanged === true) updateRow(encodeURI(JSON.stringify(this)));
+                    }
+                });
             });
 
         });
@@ -234,9 +254,24 @@
             //if (state === "error") {
             //    container.css("background-color", "red");
             //} 
-            container.html(msg);
+            container.html(container.html() + "<br/>"+msg);
             container.show(10);
-            setTimeout(function () { $('#messageContainer').hide(1000) }, 5000);
+            //setTimeout(function () { $('#messageContainer').hide(1000) }, 5000);
+        }
+
+        function updateRow(rowData){
+            var row = JSON.parse(decodeURI(rowData));
+            var actualRowData = table.row('#'+row.PK_Zutat).data();
+            $.post(endpoint, { action: "zmAJAX", function: "updateIngredient", data: actualRowData })
+                .done(function (data) {
+                    table.ajax.reload(null, false);
+                    writeMessage("Erfolgreich aktualisiert: " +actualRowData.Bezeichnung);
+                })
+                .fail(function (data) {
+                    alert("Fehler beim Aktualisieren");
+                    writeMessage(data.responseText);
+                    table.ajax.reload(null, false);
+            });
         }
             
         </script>
@@ -244,11 +279,13 @@
        <div id="Zutaten">
 
 
-    <div id=""><input type="text" name="Bezeichnung" id="zmIngredientName" value="" /> <select id="zmIngredientFKWG"></select> <button onClick="javascript:void(0);" id="zmAddIngredient">Hinzufügen</button></div>
+    <div id=""><input type="text" name="Bezeichnung" id="zmIngredientName" value="" /> 
+        <select id="zmIngredientFKWG"></select> <button onClick="javascript:void(0);" id="zmAddIngredient">Hinzufügen</button>
+    </div>
 
 
 <form name="zutaten">
-    <div class="table-responsive" style="width:80%">
+    <div class="table-responsive" style="width:90%">
         <table id="ztOverview" class="display compact" cellspacing="0">
             <thead>
                 <tr>
@@ -285,8 +322,10 @@
                 </tr>
             </tfoot>
         </table>
-
-        <div style="width:100%;height:30px;border:1px black solid;display:none" id="messageContainer"></div>
+        
+        <button type="button" onClick="javascript:void(0);" id="updateDT" class="btn btn-warning">Alle Aktualisieren</button>
+        <hr />
+        <div style="width:100%;border:1px black solid;display:none;padding:5px" id="messageContainer"></div>
     </div>
 </form>
 </div>
